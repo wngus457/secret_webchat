@@ -519,29 +519,19 @@
       cover: { kind: 'sheet', status: 'Ready　 Sum: 12,480　 100%', tree: ['⌄ Worksheets', '   Q4 Budget', '   Headcount', '   Vendors'], sheets: ['Q4 Budget', 'Headcount', 'Vendors'],
         table: [['항목', '10월', '11월', '12월', '합계'], ['인프라', 1200, 1250, 1310, 3760], ['라이선스', 840, 840, 900, 2580], ['출장', 320, 410, 150, 880], ['교육', 200, 180, 260, 640], ['장비', 1500, 2100, 1020, 4620]] }
     },
-    ios: {
-      brand: 'Workspace', title: 'TeamApp  ›  iPhone Simulator', heading: 'PROJECT NAVIGATOR', project: 'TEAM APP',
-      tree: ['TeamApp', 'Sources', 'Workspace.swift', 'Assets.xcassets', 'Info.plist'], file: 'Workspace.swift', path: 'TeamApp › Sources › Workspace.swift', footer: 'UTF-8　 Swift　 ◉ Private',
-      cover: { kind: 'code', status: 'Line 8, Col 5　 Swift　 Build Succeeded', tree: ['⌄ TeamApp', '  ⌄ Sources', '      ItemList.swift', '      TeamApp.swift', '  Assets.xcassets', '  Info.plist'],
-        terminal: ['DEBUG CONSOLE', 'Build succeeded · 2.4s', 'Launching TeamApp on iPhone Simulator', 'ItemList appeared with 3 items'],
-        files: [{ name: 'ItemList.swift', path: 'TeamApp › Sources › ItemList.swift', src: `import SwiftUI\n\nstruct Item: Identifiable {\n  let id = UUID()\n  var title: String\n}\n\n// Simple list screen with a counter in the navigation bar.\nstruct ItemList: View {\n  @State private var items = [\n    Item(title: "Inbox"),\n    Item(title: "Reviews"),\n    Item(title: "Releases"),\n  ]\n\n  var body: some View {\n    NavigationStack {\n      List(items) { item in\n        Text(item.title)\n      }\n      .navigationTitle("Items (\\(items.count))")\n    }\n  }\n}` }] }
-    },
     android: {
-      brand: 'TeamApp', title: 'app  ›  Pixel Emulator', heading: 'PROJECT', project: 'ANDROID',
-      tree: ['app', 'src / main', 'Workspace.kt', 'AndroidManifest.xml', 'build.gradle.kts'], file: 'Logcat', path: 'app › com.team.workspace › Logcat', footer: 'UTF-8　 Kotlin　 ◉ Private',
-      cover: { kind: 'code', status: 'Line 6, Col 3　 Kotlin　 BUILD SUCCESSFUL', tree: ['⌄ app', '  ⌄ src/main', '      ItemRepository.kt', '      MainActivity.kt', '  build.gradle.kts'],
-        terminal: ['BUILD', '> Task :app:compileDebugKotlin', '> Task :app:assembleDebug', 'BUILD SUCCESSFUL in 6s'],
-        files: [{ name: 'ItemRepository.kt', path: 'app › com.team.workspace › ItemRepository.kt', src: `package com.team.workspace\n\ndata class Item(val id: Long, val title: String)\n\n// In-memory source used by debug builds.\nclass ItemRepository {\n  private val items = mutableListOf<Item>()\n\n  fun add(title: String): Item {\n    val item = Item(items.size + 1L, title)\n    items += item\n    return item\n  }\n\n  fun find(id: Long): Item? =\n    items.firstOrNull { it.id == id }\n}` }] }
-    },
-    chat: {
-      brand: 'Workspace', title: 'Team workspace', heading: 'WORKSPACE', project: 'TEAM CHANNELS',
-      tree: ['Channels', '# general', '# team-room', '# projects', '# resources'], file: '# team-room', path: 'Team workspace › Channels › team-room', footer: 'Team workspace　 ◉ Private',
-      cover: { kind: 'channel', status: 'Team workspace', tree: ['⌄ Channels', '   # general', '   # announcements', '   # projects'], channels: ['# announcements'],
-        items: [['운영팀', '09:02', '이번 주 금요일 18시에 서버 점검이 있습니다.'], ['인사팀', '09:40', '연말 정산 안내 메일을 확인해 주세요.'], ['운영팀', '10:15', '회의실 예약 시스템이 새 버전으로 바뀌었습니다.'], ['총무팀', '11:03', '3층 복합기 토너를 교체했습니다.']] }
+      brand: 'TaskApp', title: 'app  ›  Pixel Emulator', heading: 'PROJECT', project: 'ANDROID',
+      tree: ['app', 'src / main', 'TaskAppFunctionService.kt', 'AndroidManifest.xml', 'build.gradle.kts'], file: 'Logcat', path: 'app › com.example.tasks › Logcat', footer: 'UTF-8　 Kotlin　 ◉ Private',
+      cover: { kind: 'code', status: 'Line 14, Col 3　 Kotlin　 BUILD SUCCESSFUL', tree: ['⌄ app', '  ⌄ src/main', '    ⌄ appfunctions', '        TaskAppFunctionService.kt', '        CreateTaskParams.kt', '      AndroidManifest.xml', '  build.gradle.kts'],
+        terminal: ['TERMINAL', '$ adb shell cmd app_function list-app-functions --package com.example.tasks', 'com.example.tasks', '  BaseTaskAppFunctionService#createTask    enabled', 'BUILD SUCCESSFUL in 6s'],
+        files: [
+          { name: 'TaskAppFunctionService.kt', path: 'app › com.example.tasks › TaskAppFunctionService.kt', src: `@RequiresApi(36)\n@AndroidEntryPoint\n@AppFunctionServiceEntryPoint(\n  serviceName = "TaskAppFunctionService",\n  appFunctionXmlFileName = "task_app_function_service",\n)\nabstract class BaseTaskAppFunctionService : AppFunctionService() {\n  @Inject internal lateinit var taskRepository: TaskRepository\n\n  /**\n   * Creates a task based on [createTaskParams].\n   */\n  @AppFunctionDeclaration(isDescribedByKDoc = true)\n  suspend fun createTask(\n    createTaskParams: CreateTaskParams,\n  ): Task = withContext(Dispatchers.IO) {\n    // Predefined exceptions tell the agent why it failed.\n    if (createTaskParams.title == null && createTaskParams.content == null) {\n      throw AppFunctionInvalidArgumentException("Title or content should be non-null")\n    }\n\n    val id = taskRepository.createTask(\n      createTaskParams.title,\n      createTaskParams.content\n    )\n\n    return@withContext taskRepository\n      .getTask(id)\n      ?.toTask()\n      ?: throw AppFunctionElementNotFoundException("Task not found for ID = $id")\n  }\n\n  // Maps internal TaskEntity\n  private fun TaskEntity.toTask() = Task(id = id, title = title, content = description)\n}` },
+          { name: 'CreateTaskParams.kt', path: 'app › com.example.tasks › CreateTaskParams.kt', src: `/** The parameter to create the task. */\n@AppFunctionSerializable(isDescribedByKDoc = true)\ndata class CreateTaskParams(\n  /** The title of the task. */\n  val title: String?,\n  /** The content of the task. */\n  val content: String?,\n)\n\n/** The user-created task. */\n@AppFunctionSerializable(isDescribedByKDoc = true)\ndata class Task(\n  /** The ID of the task. */\n  val id: String,\n  /** The title of the task. */\n  val title: String,\n  /** The content of the task. */\n  val content: String,\n)` }
+        ] }
     }
   };
 
-  const KEYWORDS = 'import|from|export|interface|class|private|async|await|function|const|let|return|if|while|for|try|catch|throw|new|as|struct|var|some|package|data|val|fun|in';
+  const KEYWORDS = 'import|from|export|interface|class|private|async|await|function|const|let|return|if|while|for|try|catch|throw|new|as|package|data|val|var|fun|suspend|abstract|override|null|lateinit|internal';
   const TOKEN = new RegExp(`(//.*$|'[^']*'|"[^"]*"|\\b(?:${KEYWORDS})\\b|\\b\\d+\\b|\\b[A-Z][A-Za-z]+\\b)`, 'g');
   const syntaxClass = part => {
     if (part.startsWith('//')) return 'syntax-comment';
@@ -583,7 +573,7 @@
     if (cover.kind === 'code') {
       $('coverTerminal').replaceChildren(...cover.terminal.map(line => el('div', '', line)));
       showCoverFile(cover, cover.files[0].name);
-    } else if (cover.kind === 'sheet') {
+    } else {
       coverTabs(cover.sheets, cover.sheets[0]);
       $('coverPath').textContent = 'A1';
       const table = el('table', 'sheet-grid'), header = el('tr');
@@ -596,17 +586,6 @@
         table.append(row);
       });
       $('coverBody').replaceChildren(table);
-    } else {
-      coverTabs(cover.channels, cover.channels[0]);
-      $('coverPath').textContent = '공지 채널';
-      $('coverBody').replaceChildren(...cover.items.map(([author, time, text]) => {
-        const item = el('div', 'channel-item'), content = el('div'), head = el('div');
-        const name = el('strong', '', author);
-        head.append(name, el('time', '', time));
-        content.append(head, el('div', '', text));
-        item.append(el('span', 'avatar', author[0]), content);
-        return item;
-      }));
     }
   }
 

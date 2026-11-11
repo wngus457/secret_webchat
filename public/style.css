@@ -19,28 +19,12 @@ body[data-theme=sheet] {
   --font: -apple-system, "Segoe UI", "Malgun Gothic", "Apple SD Gothic Neo", sans-serif;
   --kw: #137a43; --str: #a0522d; --num: #1a56a8; --type: #137a43; --cmt: #6b746f;
 }
-body[data-theme=ios] {
-  color-scheme: light;
-  --bg: #ffffff; --panel: #f2f2f7; --side: #ececf1; --side-text: #2c2c2e; --line: #d8d8de;
-  --text: #1c1c1e; --muted: #7c7c84; --accent: #007aff; --active: #d5e8ff;
-  --bar: #e5e5ea; --bar-text: #3a3a3c; --title: #e5e5ea; --title-text: #1c1c1e;
-  --font: -apple-system, "SF Pro Text", "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
-  --kw: #ad3da4; --str: #d12f1b; --num: #272ad8; --type: #3e8087; --cmt: #707f8c;
-}
 body[data-theme=android] {
   --bg: #1f2124; --panel: #2b2d30; --side: #2b2d30; --side-text: #cdd0d4; --line: #43454a;
   --text: #dfe1e5; --muted: #8c9096; --accent: #3ddc84; --active: #24513a; --on-accent: #0c2417;
   --bar: #2b2d30; --bar-text: #a8acb2; --title: #3c3f41; --title-text: #dfe1e5;
   --font: "JetBrains Mono", Menlo, Consolas, "Apple SD Gothic Neo", monospace;
   --kw: #cf8e6d; --str: #6aab73; --num: #2aacb8; --type: #56a8f5; --cmt: #7a7e85;
-}
-body[data-theme=chat] {
-  color-scheme: light;
-  --bg: #ffffff; --panel: #f6f6f6; --side: #3f0e40; --side-text: #e6d9e7; --line: #dddddd;
-  --text: #1d1c1d; --muted: #6f6e70; --accent: #7c3085; --active: #efe2f1;
-  --bar: #350d36; --title: #350d36; --title-text: #ffffff;
-  --font: -apple-system, "Segoe UI", "Malgun Gothic", "Apple SD Gothic Neo", sans-serif;
-  --kw: #7c3085; --str: #a0522d; --num: #1a56a8; --type: #7c3085; --cmt: #6f6e70;
 }
 
 button, input, select, textarea { font: inherit; color: inherit; }
@@ -65,7 +49,6 @@ kbd { font: inherit; font-size: 10px; opacity: .75; }
 .sidebar h2 { font-size: 12px; margin: 8px 0; }
 .tree span, .tree strong { display: block; padding: 1px 0; }
 .tree strong { color: var(--accent); }
-body[data-theme=chat] .tree strong { color: #ffffff; }
 .section-label { display: flex; justify-content: space-between; margin: 20px 0 8px; font-size: 10px; letter-spacing: .08em; opacity: .75; }
 .member { display: flex; align-items: center; gap: 8px; padding: 3px 0; }
 .member-name { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
@@ -165,7 +148,7 @@ main { display: flex; flex-direction: column; min-height: 0; min-width: 0; }
 .cover-title { display: flex; align-items: center; gap: 16px; padding: 5px 12px; background: var(--title); color: var(--title-text); }
 .cover-title button { color: inherit; border-color: color-mix(in srgb, var(--title-text) 35%, transparent); }
 .cover-mark { color: var(--accent); font-weight: 700; }
-body[data-theme=sheet] .cover-mark, body[data-theme=chat] .cover-mark { color: inherit; }
+body[data-theme=sheet] .cover-mark { color: inherit; }
 .cover-menu { white-space: nowrap; opacity: .85; }
 .cover-search { flex: 1; text-align: center; opacity: .7; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .cover-layout { flex: 1; min-height: 0; display: grid; grid-template-columns: 44px 220px minmax(0, 1fr); }
@@ -192,9 +175,6 @@ body[data-theme=sheet] .cover-mark, body[data-theme=chat] .cover-mark { color: i
 .sheet-grid th { background: var(--panel); color: var(--muted); font-weight: 400; min-width: 36px; }
 .sheet-grid td.num { text-align: right; }
 .sheet-grid tr:nth-child(2) td { font-weight: 600; background: var(--active); }
-.channel-item { display: flex; gap: 10px; padding: 7px 18px; }
-.channel-item .avatar { width: 32px; height: 32px; font-size: 14px; }
-.channel-item time { color: var(--muted); font-size: 11px; margin-left: 8px; }
 
 @media (max-width: 760px) {
   .shell { grid-template-columns: minmax(0, 1fr); }
