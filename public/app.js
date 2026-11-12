@@ -20,7 +20,7 @@
   let self = '', roomId = '', rows = [], rendered = [], fingerprint = '', timer, failures = 0;
   let busy = false, syncAgain = false, sending = false, composing = false, draftRevision = 0;
   let replyTarget = null, picker = null, pending = null;
-  let readSeq = null, boundary = 0, paused = false, anchorPending = true, stickNext = false;
+  let readSeq = null, notifiedSeq = 0, boundary = 0, paused = false, anchorPending = true, stickNext = false;
   const reacting = new Set();
   const imageUrls = new Map();
 
@@ -299,8 +299,10 @@
         self = data.name; roomId = data.room;
         const saved = Number(store.get('localStorage', `webchat.read.${roomId}.${self}`));
         readSeq = saved > 0 ? saved : latest;
-        boundary = readSeq;
+        boundary = readSeq; notifiedSeq = latest;
       } else if (latest > maxSeq(rows) && viewing() && !anchorPending && atEnd() && unreadCount() === 0) boundary = latest;
+      notifyNew(data.messages.filter(row => row.seq > notifiedSeq && countsAsUnread(row)));
+      notifiedSeq = Math.max(notifiedSeq, latest);
       rows = data.messages;
       failures = 0;
       if (replyTarget && !rows.some(row => row.id === replyTarget)) $('replyPreviewText').textContent = '삭제되었거나 만료된 원문 · 취소 후 일반 메시지로 보내세요';
@@ -320,6 +322,17 @@
       busy = false;
       if (syncAgain) { syncAgain = false; sync(); }
     }
+  }
+
+  // 내용은 싣지 않는다: 알림 센터에 대화 흔적이 남지 않도록 현재 테마에 맞춘 위장 문구만 보인다.
+  // 같은 tag로 교체하면 브라우저가 두 번째부터 조용히 바꿔치기만 하므로, 이전 알림을 닫고 새로 띄운다.
+  let lastNote = null;
+  function notifyNew(fresh) {
+    if (!fresh.length || viewing() || !$('notify').checked || !('Notification' in window) || Notification.permission !== 'granted') return;
+    lastNote?.close();
+    const theme = THEMES[document.body.dataset.theme];
+    const note = lastNote = new Notification(theme.title, { body: theme.alert });
+    note.onclick = () => { window.focus(); note.close(); };
   }
 
   async function poll() {
@@ -499,12 +512,21 @@
       if ($('autoCover').checked) showCover();
     } else if (token) { resumeReading(); poll(); }
   });
+  $('notify').checked = store.get('localStorage', 'webchat.notify') === '1' && 'Notification' in window && Notification.permission === 'granted';
+  $('notify').addEventListener('change', async event => {
+    const box = event.target;
+    if (box.checked) {
+      if (!('Notification' in window) || !window.isSecureContext) { box.checked = false; notice('이 브라우저/주소(HTTPS 또는 localhost 필요)에서는 데스크톱 알림을 쓸 수 없습니다.'); }
+      else if (await Notification.requestPermission() !== 'granted') { box.checked = false; notice('브라우저 또는 OS 설정에서 이 사이트의 알림이 차단되어 있습니다.'); }
+    }
+    store.set('localStorage', 'webchat.notify', box.checked ? '1' : null);
+  });
   window.addEventListener('blur', pauseReading);
   window.addEventListener('focus', resumeReading);
 
   const THEMES = {
     code: {
-      brand: 'STUDIO', title: 'team-workspace — project', heading: 'EXPLORER', project: 'TEAM WORKSPACE',
+      brand: 'STUDIO', title: 'team-workspace — project', alert: '✓ Tests passed · 0 errors, 0 warnings', heading: 'EXPLORER', project: 'TEAM WORKSPACE',
       tree: ['workspace', 'src', '# team.log', 'config.json', 'README.md'], file: 'team.log', path: 'workspace › src › team.log', footer: 'UTF-8　 TypeScript　 ◉ Private',
       cover: { kind: 'code', status: 'Ln 12, Col 3　 Spaces: 2　 UTF-8　 TypeScript', tree: ['⌄ WORKSPACE', '  › node_modules', '  ⌄ src', '      queue.ts', '      retry.ts', '  package.json', '  tsconfig.json'],
         terminal: ['TERMINAL', 'workspace % npm test', ' PASS  src/queue.test.ts', '  ✓ drains jobs in insertion order (3 ms)', '  ✓ retries a failed job twice (1 ms)', 'Tests  2 passed (2)'],
@@ -514,13 +536,13 @@
         ] }
     },
     sheet: {
-      brand: 'SHEETS', title: 'Team workspace · Workbook', heading: 'WORKBOOK', project: 'TEAM OPERATIONS',
+      brand: 'SHEETS', title: 'Team workspace · Workbook', alert: '공유 통합 문서가 업데이트되었습니다.', heading: 'WORKBOOK', project: 'TEAM OPERATIONS',
       tree: ['Workbook', 'Worksheets', 'Team notes', 'Summary', 'Resources'], file: 'Team notes', path: 'Workbook › Worksheets › Team notes', footer: 'Ready　 Notes　 ◉ Private',
       cover: { kind: 'sheet', status: 'Ready　 Sum: 12,480　 100%', tree: ['⌄ Worksheets', '   Q4 Budget', '   Headcount', '   Vendors'], sheets: ['Q4 Budget', 'Headcount', 'Vendors'],
         table: [['항목', '10월', '11월', '12월', '합계'], ['인프라', 1200, 1250, 1310, 3760], ['라이선스', 840, 840, 900, 2580], ['출장', 320, 410, 150, 880], ['교육', 200, 180, 260, 640], ['장비', 1500, 2100, 1020, 4620]] }
     },
     android: {
-      brand: 'TaskApp', title: 'app  ›  Pixel Emulator', heading: 'PROJECT', project: 'ANDROID',
+      brand: 'TaskApp', title: 'app  ›  Pixel Emulator', alert: 'BUILD SUCCESSFUL in 6s', heading: 'PROJECT', project: 'ANDROID',
       tree: ['app', 'src / main', 'TaskAppFunctionService.kt', 'AndroidManifest.xml', 'build.gradle.kts'], file: 'Logcat', path: 'app › com.example.tasks › Logcat', footer: 'UTF-8　 Kotlin　 ◉ Private',
       cover: { kind: 'code', status: 'Line 14, Col 3　 Kotlin　 BUILD SUCCESSFUL', tree: ['⌄ app', '  ⌄ src/main', '    ⌄ appfunctions', '        TaskAppFunctionService.kt', '        CreateTaskParams.kt', '      AndroidManifest.xml', '  build.gradle.kts'],
         terminal: ['TERMINAL', '$ adb shell cmd app_function list-app-functions --package com.example.tasks', 'com.example.tasks', '  BaseTaskAppFunctionService#createTask    enabled', 'BUILD SUCCESSFUL in 6s'],
